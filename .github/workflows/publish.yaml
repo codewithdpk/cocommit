@@ -23,7 +23,6 @@ jobs:
 
       - name: Build package
         run: npm run build
-        if: exists('package.json') && exists('tsconfig.json')
 
       - name: Publish to npm
         run: npm publish --access public
