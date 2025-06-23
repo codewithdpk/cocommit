@@ -16,7 +16,7 @@ AI-powered CLI tool for generating conventional commit messages based on your co
 ### Global (Recommended)
 
 ```sh
-npm install -g cocommit
+npm install -g @cwdpk/cocommit
 ```
 
 ### Local Development

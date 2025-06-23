@@ -57,5 +57,16 @@
     "dist/**/*",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "homepage": "https://github.com/codewithdpk/cocommit#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codewithdpk/cocommit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/codewithdpk/cocommit/issues"
+  },
+  "links": {
+    "npm": "https://www.npmjs.com/package/@cwdpk/cocommit?activeTab=readme"
+  }
 }
