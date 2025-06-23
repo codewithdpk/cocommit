@@ -87,4 +87,4 @@ MIT
 
 ## Author
 
-[Your Name]
+[Deepak Suthar](https://x.com/0xDSuthar)
