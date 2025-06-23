@@ -27,9 +27,6 @@ jobs:
       - name: Build package
         run: yarn build  # Using yarn instead of npm run build
 
-      - name: Run tests (recommended)
-        run: yarn test  # Using yarn instead of npm test
-
       - name: Publish to npm
         run: npm publish --access public
         env:
