@@ -2,6 +2,8 @@
 
 AI-powered CLI tool for generating conventional commit messages based on your code changes.
 
+![Demo Video](https://github.com/codewithdpk/cocommit/raw/refs/heads/main/demococo.mp4)
+
 ## Features
 
 - 🤖 **AI-Powered Commit Messages**: Generate meaningful commit messages using OpenAI, Anthropic, or Google models.
