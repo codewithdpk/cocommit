@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'  # Optional: publish when version tags are pushed
 
 jobs:
   publish:
@@ -17,12 +19,16 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'  # Cache yarn dependencies
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Build package
-        run: npm run build
+        run: yarn build  # Using yarn instead of npm run build
+
+      - name: Run tests (recommended)
+        run: yarn test  # Using yarn instead of npm test
 
       - name: Publish to npm
         run: npm publish --access public
