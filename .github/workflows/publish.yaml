@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - 'v*'  # Optional: publish when version tags are pushed
 
 jobs:
   publish:
@@ -13,48 +13,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Needed for version detection
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
+          cache: 'yarn'  # Cache yarn dependencies
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Auto-version bump (on main branch)
-        if: github.ref == 'refs/heads/main'
-        id: version-bump
-        uses: mathieudutour/github-tag-action@v6
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_version: |
-            if (git log -1 --pretty=%B | grep -i -E 'feat\(?.*\)?:') {
-              echo "minor"
-            } else if (git log -1 --pretty=%B | grep -i -E 'fix\(?.*\)?:') {
-              echo "patch"
-            } else {
-              echo ""
-            }
-
       - name: Build package
-        run: yarn build
+        run: yarn build  # Using yarn instead of npm run build
 
-      - name: Run tests
-        run: yarn test
-
-      - name: Publish to npm (on version tag)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publish to npm
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create release (on version tag)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
