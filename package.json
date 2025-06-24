@@ -1,6 +1,6 @@
 {
   "name": "@cwdpk/cocommit",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "AI-powered git commit message generator CLI tool (CoCommit)",
   "main": "dist/cli.js",
   "bin": {
