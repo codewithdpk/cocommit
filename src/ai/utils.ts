@@ -43,6 +43,6 @@ feat(auth): add JWT authentication middleware
 - Impacts all routes under /api/private
 \`\`\`
 
-IMPORTANT NOTE: The body max char length should be 50 and same for the description should be 200. Do not exceed these limits.
+IMPORTANT NOTE: The body max char length should be 100 and same for the description should be 200. Do not exceed these limits.
 Only output the commit message in the specified format. Do not include extra commentary or explanations. Your goal is to write commit messages that are clean, conventional, and helpful in code review and future history tracking.
 `;
