@@ -68,7 +68,7 @@ const CommitMessageSchema = z.object({
   ]),
   scope: z.string().optional().nullable(),
   description: z.string().min(1).max(200),
-  body: z.string().min(1).max(200).optional().nullable(),
+  body: z.string().min(1).max(200),
   breaking: z.boolean().optional().default(false),
 });
 
@@ -528,7 +528,6 @@ class AIGitCommit {
         schema: CommitMessageSchema,
         system: SYSTEM_PROMPT,
         prompt: `Analyze the following code changes and generate a conventional commit message:\n\n${context}`,
-        temperature: 0.3,
       });
 
       return result.object;
