@@ -68,7 +68,7 @@ const CommitMessageSchema = z.object({
   ]),
   scope: z.string().optional().nullable(),
   description: z.string().min(1).max(200),
-  body: z.string().max(100).optional().nullable(),
+  body: z.string().min(1).max(200).optional().nullable(),
   breaking: z.boolean().optional().default(false),
 });
 
