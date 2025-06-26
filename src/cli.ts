@@ -67,8 +67,8 @@ const CommitMessageSchema = z.object({
     "revert",
   ]),
   scope: z.string().optional().nullable(),
-  description: z.string().min(1).max(200),
-  body: z.string().min(1).max(200),
+  description: z.string().min(1),
+  body: z.string().min(1),
   breaking: z.boolean().optional().default(false),
 });
 
