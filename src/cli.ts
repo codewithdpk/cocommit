@@ -272,11 +272,11 @@ class AIGitCommit {
           gitConfig,
           GenMode.Branch
         );
-        this.spinner.succeed("AI commit message generated");
+        this.spinner.succeed("New branch name using AI is generated ✨");
 
         const branchNameOutput = aiContent as BranchName;
 
-        console.log(chalk.green("\nGenerated commit message:"));
+        console.log(chalk.green("\nGenerated branch name:"));
         console.log(chalk.cyan(branchNameOutput.branchName));
 
         branchName = branchNameOutput.branchName;
