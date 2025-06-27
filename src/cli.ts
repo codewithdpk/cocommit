@@ -18,12 +18,17 @@ import {
   loadAIConfig,
   saveAIConfig,
 } from "./ai/config";
-import { SYSTEM_PROMPT } from "./ai/utils";
+import { BRANCH_SYSTEM_PROMPT, COMMIT_SYSTEM_PROMPT } from "./ai/utils";
 
 // Load environment variables
 dotenv.config();
 
 const execAsync = promisify(exec);
+
+enum GenMode {
+  Commit = "commit",
+  Branch = "branch",
+}
 
 interface GitConfig {
   user: {
@@ -51,6 +56,10 @@ interface CommitMessage {
   breaking?: boolean;
 }
 
+interface BranchName {
+  branchName: string;
+}
+
 // Zod schema for commit message validation
 const CommitMessageSchema = z.object({
   type: z.enum([
@@ -70,6 +79,10 @@ const CommitMessageSchema = z.object({
   description: z.string().min(1),
   body: z.string().min(1),
   breaking: z.boolean().optional().default(false),
+});
+
+const BranchNameSchema = z.object({
+  branchName: z.string().min(1),
 });
 
 type AIProvider = "openai" | "anthropic" | "google";
@@ -104,6 +117,16 @@ class AIGitCommit {
       )
       .option("--no-verify", "Skip git hooks")
       .action(this.handleCommit.bind(this));
+
+    this.program
+      .command("branch")
+      .alias("b")
+      .command("new")
+      .alias("n")
+      .option("-n, --name", "Custom branch name (skips AI generation)")
+      .option("-a, --add-all", "Add all changed files before committing")
+      .description("Create a new branch")
+      .action(this.handleGenerateBranchName.bind(this));
 
     this.program
       .command("config")
@@ -153,13 +176,16 @@ class AIGitCommit {
         );
       } else {
         this.spinner.start("Generating AI commit message...");
-        const aiCommitMessage = await this.generateCommitMessage(
+        const aiCommitMessage = await this.generateAIContent(
           changedFiles,
-          gitConfig
+          gitConfig,
+          GenMode.Commit
         );
         this.spinner.succeed("AI commit message generated");
 
-        commitMessage = this.formatCommitMessage(aiCommitMessage);
+        commitMessage = this.formatCommitMessage(
+          aiCommitMessage as CommitMessage
+        );
 
         console.log(chalk.green("\nGenerated commit message:"));
         console.log(chalk.cyan(commitMessage));
@@ -199,6 +225,97 @@ class AIGitCommit {
       console.log(chalk.green("✨ Successfully committed changes!"));
     } catch (error) {
       this.spinner.fail("Failed to commit");
+      console.error(
+        chalk.red("Error:"),
+        error instanceof Error ? error.message : error
+      );
+      process.exit(1);
+    }
+  }
+
+  private async handleGenerateBranchName(options: any): Promise<void> {
+    try {
+      this.spinner.start("Checking git repository...");
+
+      // Check if we're in a git repository
+      await this.checkGitRepository();
+
+      // Get git config
+      const gitConfig = await this.getGitConfig();
+      this.spinner.succeed("Git repository validated");
+
+      // Get changed files
+      this.spinner.start("Analyzing changed files...");
+      const changedFiles = await this.getChangedFiles(options.addAll);
+
+      if (changedFiles.length === 0) {
+        this.spinner.warn("No changes detected");
+        console.log(
+          chalk.yellow("No files to commit. Use -a flag to add all changes.")
+        );
+        return;
+      }
+
+      this.spinner.succeed(`Found ${changedFiles.length} changed file(s)`);
+
+      // Generate new branch name
+      let branchName: string;
+
+      if (options.message) {
+        branchName = options.message;
+        console.log(chalk.blue("Using provided branch name:"), branchName);
+      } else {
+        this.spinner.start("Generating AI branch name...");
+
+        const aiContent = await this.generateAIContent(
+          changedFiles,
+          gitConfig,
+          GenMode.Branch
+        );
+        this.spinner.succeed("AI commit message generated");
+
+        const branchNameOutput = aiContent as BranchName;
+
+        console.log(chalk.green("\nGenerated commit message:"));
+        console.log(chalk.cyan(branchNameOutput.branchName));
+
+        branchName = branchNameOutput.branchName;
+
+        // Ask for confirmation
+        const { confirmed } = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "confirmed",
+            message: "Do you want to proceed with this branch name?",
+            default: true,
+          },
+        ]);
+
+        if (!confirmed) {
+          const { customBranchName } = await inquirer.prompt([
+            {
+              type: "input",
+              name: "customBranchName",
+              message: "Enter your custom branch name:",
+              validate: (input) =>
+                input.trim().length > 0 || "Branch name cannot be empty",
+            },
+          ]);
+          branchName = customBranchName;
+        }
+      }
+
+      // Perform commit
+      if (options.dryRun) {
+        console.log(chalk.yellow("Dry run - would commit:"));
+        console.log(chalk.cyan(branchName));
+        return;
+      }
+
+      await this.createANewBranch(branchName, options);
+      console.log(chalk.green("✨ Successfully checked out to new branch!"));
+    } catch (error) {
+      this.spinner.fail("Failed to checkout to new branch");
       console.error(
         chalk.red("Error:"),
         error instanceof Error ? error.message : error
@@ -454,15 +571,16 @@ class AIGitCommit {
     }
   }
 
-  private async generateCommitMessage(
+  private async generateAIContent(
     changedFiles: ChangedFile[],
-    gitConfig: GitConfig
-  ): Promise<CommitMessage> {
+    gitConfig: GitConfig,
+    genMode: GenMode
+  ): Promise<CommitMessage | BranchName> {
     // Create context for AI
     const context = this.createChangeContext(changedFiles, gitConfig);
 
     // Simulate AI call (replace with actual AI service)
-    const aiResponse = await this.callAI(context);
+    const aiResponse = await this.callAI(context, genMode);
 
     return aiResponse;
   }
@@ -518,16 +636,17 @@ class AIGitCommit {
     }
   }
 
-  private async callAI(context: string): Promise<CommitMessage> {
+  private async callAI(
+    context: string,
+    genMode: GenMode
+  ): Promise<CommitMessage | BranchName> {
     try {
       const config = await this.getAIConfig();
       const model = this.getAIProvider(config);
 
       const result = await generateObject({
         model,
-        schema: CommitMessageSchema,
-        system: SYSTEM_PROMPT,
-        prompt: `Analyze the following code changes and generate a conventional commit message:\n\n${context}`,
+        ...this.getPromptConfig(genMode, context),
       });
 
       return result.object;
@@ -639,6 +758,64 @@ class AIGitCommit {
     } catch (error) {
       throw new Error("Failed to commit changes");
     }
+  }
+
+  private async createANewBranch(
+    branchName: string,
+    options: any
+  ): Promise<void> {
+    try {
+      let commitCommand = `git checkout -b "${branchName}"`;
+
+      await execAsync(commitCommand);
+    } catch (error) {
+      throw new Error(
+        `Failed to make a branch: ${
+          error instanceof Error ? error.message : error
+        }`
+      );
+    }
+  }
+
+  private getSystemPrompt(genMode: GenMode): string {
+    if (genMode === GenMode.Commit) {
+      return COMMIT_SYSTEM_PROMPT;
+    } else if (genMode === GenMode.Branch) {
+      return BRANCH_SYSTEM_PROMPT;
+    } else {
+      return COMMIT_SYSTEM_PROMPT;
+    }
+  }
+
+  private getZodSchema(genMode: GenMode): z.ZodTypeAny {
+    if (genMode === GenMode.Commit) {
+      return CommitMessageSchema;
+    } else if (genMode === GenMode.Branch) {
+      return BranchNameSchema;
+    } else {
+      return CommitMessageSchema;
+    }
+  }
+
+  private getPromptWithContext(genMode: GenMode, context: string): string {
+    if (genMode === GenMode.Commit) {
+      return `Analyze the following code changes and generate a conventional commit message:\n\n${context}`;
+    } else if (genMode === GenMode.Branch) {
+      return `Analyze the following code changes and generate a new conventional branch name for code changes:\n\n${context}`;
+    } else {
+      return `Analyze the following code changes and generate a conventional commit message:\n\n${context}`;
+    }
+  }
+
+  private getPromptConfig(
+    genMode: GenMode,
+    context: string
+  ): { schema: z.ZodTypeAny; system: string; prompt: string } {
+    return {
+      schema: this.getZodSchema(genMode),
+      system: this.getSystemPrompt(genMode),
+      prompt: this.getPromptWithContext(genMode, context),
+    };
   }
 
   public async run(): Promise<void> {
