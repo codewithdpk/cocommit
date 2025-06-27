@@ -1,15 +1,16 @@
 # CoCommit
 
-AI-powered CLI tool for generating conventional commit messages based on your code changes.
+AI-powered CLI tool for generating conventional commit messages and branch names based on your code changes.
 
 ![Demo Video](https://github.com/codewithdpk/cocommit/raw/refs/heads/main/demococo.mp4)
 
 ## Features
 
 - 🤖 **AI-Powered Commit Messages**: Generate meaningful commit messages using OpenAI, Anthropic, or Google models.
+- 🌿 **AI-Powered Branch Names**: Generate conventional branch names based on your staged changes.
 - 📝 **Conventional Commit Format**: Follows the conventional commit standard.
-- 🔍 **Smart File Analysis**: Analyzes staged files and their diffs for context-aware messages.
-- ⚡ **Quick Commands**: Simple CLI commands and aliases for fast workflow, analyse, generate and commit within a single command.
+- 🔍 **Smart File Analysis**: Analyzes staged files and their diffs for context-aware messages and branch names.
+- ⚡ **Quick Commands**: Simple CLI commands and aliases for fast workflow: analyze, generate, and commit or branch within a single command.
 - 🎨 **Beautiful Output**: Colorful, user-friendly CLI interface.
 - 🔧 **Easy Configuration**: Interactive setup for AI provider and API key.
 
@@ -61,7 +62,29 @@ You can also provide your own message:
 cocommit commit -m "your message"
 ```
 
-### 3. View status with AI insights
+### 3. Generate a branch name (NEW)
+
+Stage your changes, then run:
+
+```sh
+cocommit branch new
+```
+
+Or use the alias:
+
+```sh
+cocommit b n
+```
+
+You can also provide your own branch name:
+
+```sh
+cocommit branch new -n "your-branch-name"
+```
+
+The tool will suggest an AI-generated branch name based on your staged changes, and prompt for confirmation or a custom name before creating and checking out the new branch.
+
+### 4. View status with AI insights
 
 ```sh
 cocommit status
