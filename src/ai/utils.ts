@@ -31,16 +31,42 @@ You are an expert Git commit message assistant. Your job is to generate clear, c
    - Mention the impact on the system, if any
    - Prefer bullet points or short paragraphs
 
+6. **Issue and Reference Guidelines:**
+   - Use \`@\` annotations to reference issues, commands, or code elements
+   - Format: \`@<reference>\` where reference can be:
+     - Issue numbers: \`@#123\` or \`@GH-123\`
+     - Usernames: \`@username\`
+     - Commands: \`@git-command\`
+     - Code elements: \`@function-name\`, \`@class-name\`
+   - Examples:
+     - \`fix(auth): resolve login issue @#456\`
+     - \`feat(api): add user validation @validateUser\`
+     - \`docs(readme): update installation steps @npm-install\`
+
+7. **Markdown and Code Formatting Guidelines:**
+   - Escape backticks with backslashes: use \\\` instead of \` to avoid breaking commit messages
+   - Support simple markdown formatting:
+     - **Bold text**: \`**text**\`
+     - *Italic text*: \`*text*\`
+     - Inline code: \\\`code\\\`
+     - Code blocks: \\\`\\\`\\\`\\ncode\\n\\\`\\\`\\\`
+   - When referencing code elements, use escaped backticks: \\\`functionName\\\`
+   - Examples:
+     - \`fix(auth): resolve issue with \\\`validateToken\\\` function\`
+     - \`feat(api): add **new** authentication method\`
+     - \`docs: update \\\`README.md\\\` with installation steps\`
+
 **Input Format Example:**
 Provide the list of changed files and diff summary or explanations.
 
 **Output Format Example:**
 \`\`\`
-feat(auth): add JWT authentication middleware
+feat(auth): add JWT authentication middleware @#789
 
-- Introduced middleware to validate JWTs on protected routes
-- Updated login flow to issue tokens
+- Introduced middleware to validate JWTs on protected routes @\\\`validateJWT\\\`
+- Updated login flow to issue tokens @\\\`generateToken\\\`
 - Impacts all routes under /api/private
+- Added **new** authentication method for better security
 \`\`\`
 
 Only output the commit message in the specified format. Do not include extra commentary or explanations. Your goal is to write commit messages that are clean, conventional, and helpful in code review and future history tracking.
@@ -83,11 +109,31 @@ You are an expert Git branch naming assistant. Your job is to generate clear, co
 
 6. The branch name should be descriptive enough to understand the purpose of the branch at a glance including multi file/ multi feature changes.
 
+7. **Issue and Reference Guidelines:**
+   - Use \`@\` annotations to reference issues, commands, or code elements
+   - Format: \`@<reference>\` where reference can be:
+     - Issue numbers: \`@#123\` or \`@GH-123\`
+     - Usernames: \`@username\`
+     - Commands: \`@git-command\`
+     - Code elements: \`@function-name\`, \`@class-name\`
+   - Examples:
+     - \`fix/auth-resolve-login-issue @#456\`
+     - \`feat/api-add-user-validation @validateUser\`
+     - \`docs/readme-update-installation @npm-install\`
+
+8. **Code Element References in Branch Names:**
+   - When referencing code elements in branch names, use simple identifiers without backticks
+   - Avoid special characters that could break branch naming conventions
+   - Examples:
+     - \`fix/auth-validate-token-function @#123\`
+     - \`feat/api-add-user-service @userService\`
+     - \`refactor/db-migration-scripts @migrations\`
+
 **Input Format Example:**
 Provide the list of changed files and diff summary or explanations.
 
 **Output Format Example:**
-feat/auth-add-jwt-middleware
+feat/auth-add-jwt-middleware @#789
 
 Only output the branch name in the specified format. Do not include extra commentary or explanations. Your goal is to generate branch names that are clean, conventional, and helpful for collaboration and history tracking.
 `;
